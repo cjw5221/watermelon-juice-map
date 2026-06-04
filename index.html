@@ -72,38 +72,50 @@
       min-height: 90px;
     }
 
-    .notice {
+    .location-box {
+      background: #f8f9fb;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .location-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .location-status {
       font-size: 14px;
       color: #555;
       line-height: 1.6;
-      background: #fff8e1;
-      padding: 14px;
+      margin: 0 0 12px;
+    }
+
+    .location-button {
+      margin-bottom: 12px;
+      background: #047857;
+    }
+
+    .location-button:hover {
+      background: #065f46;
+    }
+
+    .kakao-link {
+      display: none;
+      margin-bottom: 12px;
+      font-weight: 800;
+      color: #111827;
+      text-decoration: none;
+      background: #fee500;
+      padding: 12px;
       border-radius: 12px;
-      margin-bottom: 18px;
+      text-align: center;
     }
 
-    .map-help {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.6;
-      margin-top: -8px;
-      margin-bottom: 18px;
-    }
-
-    #map {
-      width: 100%;
-      height: 320px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      background: #e5e7eb;
-    }
-
-    #streetView {
-      width: 100%;
-      height: 260px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      background: #e5e7eb;
+    .kakao-link:hover {
+      background: #facc15;
     }
 
     .grid {
@@ -206,20 +218,13 @@
         padding: 14px;
       }
 
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
       .header h1 {
         font-size: 23px;
       }
 
-      #map {
-        height: 280px;
-      }
-
-      #streetView {
-        height: 220px;
+      .grid,
+      .location-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -232,17 +237,11 @@
       <h1>국특원 수박주스 평가맵</h1>
       <p>
         국립특수교육원 주변 카페의 수박주스를 직원들이 함께 평가하는 참여형 맛지도입니다.
-        카페 위치를 지도에서 선택한 뒤, 수박주스의 맛을 5점 척도로 평가해 주세요.
+        카페에서 현재 위치를 찍고, 수박주스 맛을 가볍게 평가해 주세요.
       </p>
     </div>
 
     <div class="card">
-      <div class="notice">
-        ※ 평가는 개인 취향이 반영될 수 있습니다.
-        같은 카페라도 방문일, 제조자, 수박 상태에 따라 맛이 달라질 수 있습니다.
-        카페명과 위치는 지도 제작에 활용됩니다.
-      </div>
-
       <form id="reviewForm">
 
         <label for="evaluator">평가자 이름 또는 닉네임</label>
@@ -261,33 +260,59 @@
           placeholder="예: 메가MGC커피 천안아산역점"
         />
 
-        <label for="placeSearch">카페 위치 검색</label>
-        <input
-          type="text"
-          id="placeSearch"
-          placeholder="카페명 또는 주소를 입력하세요. 예: 천안아산역 카페"
-        />
+        <div class="location-box">
+          <input type="hidden" id="lat" />
+          <input type="hidden" id="lng" />
+          <input type="hidden" id="mapUrl" />
 
-        <label for="address">선택된 주소</label>
-        <input
-          type="text"
-          id="address"
-          readonly
-          placeholder="지도에서 위치를 선택하면 자동 입력됩니다."
-        />
+          <p id="locationStatus" class="location-status">
+            아직 위치가 입력되지 않았습니다. 카페 안이나 카페 앞에서 아래 버튼을 눌러 주세요.
+          </p>
 
-        <input type="hidden" id="lat" />
-        <input type="hidden" id="lng" />
+          <button
+            type="button"
+            class="location-button"
+            onclick="useCurrentLocation()"
+          >
+            현재 위치 찍기
+          </button>
 
-        <div id="map"></div>
+          <a
+            id="kakaoMapLink"
+            class="kakao-link"
+            href="#"
+            target="_blank"
+          >
+            카카오맵에서 위치 확인
+          </a>
 
-        <div id="streetView"></div>
+          <div class="location-grid">
+            <div>
+              <label for="latView">위도</label>
+              <input
+                type="text"
+                id="latView"
+                readonly
+                placeholder="자동 입력"
+              />
+            </div>
 
-        <p class="map-help">
-          ※ 카페명을 검색한 뒤 지도 핀 위치를 확인해 주세요.
-          위치가 다르면 지도를 클릭하거나 핀을 드래그해 수정할 수 있습니다.
-          Street View는 실제 카페 위치 확인용입니다.
-        </p>
+            <div>
+              <label for="lngView">경도</label>
+              <input
+                type="text"
+                id="lngView"
+                readonly
+                placeholder="자동 입력"
+              />
+            </div>
+          </div>
+
+          <p class="location-status">
+            ※ 휴대폰 위치 권한을 허용해야 합니다. 실내에서는 GPS 오차가 있을 수 있으므로,
+            위치가 크게 다르면 카페 출입구 근처에서 다시 눌러 주세요.
+          </p>
+        </div>
 
         <label for="menu">메뉴명</label>
         <input
@@ -307,18 +332,8 @@
 
         <div class="grid">
           <div class="score-box">
-            <label>수박 원물감</label>
-            <div class="score-options" data-name="watermelon"></div>
-          </div>
-
-          <div class="score-box">
             <label>당도 균형</label>
             <div class="score-options" data-name="sweetness"></div>
-          </div>
-
-          <div class="score-box">
-            <label>시원함</label>
-            <div class="score-options" data-name="coolness"></div>
           </div>
 
           <div class="score-box">
@@ -337,12 +352,12 @@
           </div>
         </div>
 
-        <p class="total">현재 총점: <span id="totalScore">0</span> / 30</p>
+        <p class="total">현재 총점: <span id="totalScore">0</span> / 20</p>
 
         <label for="comment">한 줄 평가</label>
         <textarea
           id="comment"
-          placeholder="예: 수박 원물감은 좋지만 단맛은 약한 편. 깔끔한 맛을 좋아하면 추천."
+          placeholder="예: 단맛이 적당하고 식감이 깔끔한 편. 가격 대비 만족도도 좋음."
         ></textarea>
 
         <button type="submit">평가 제출하기</button>
@@ -384,29 +399,8 @@
   </div>
 
   <script>
-    /*
-      1. https://script.google.com/macros/s/AKfycbzlFnJehp7-3xZc5D6mdj7xJkWUe5ESWjjRi7VYa0CYsdX-N3h2pQnxamj43l0RUE4p/exec
-    */
-    const SCRIPT_URL = "여기에_APPS_SCRIPT_웹앱_URL_입력";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlFnJehp7-3xZc5D6mdj7xJkWUe5ESWjjRi7VYa0CYsdX-N3h2pQnxamj43l0RUE4p/exec";
 
-    let map;
-    let marker;
-    let geocoder;
-    let autocomplete;
-    let panorama;
-
-    /*
-      국립특수교육원 주변 초기 위치입니다.
-      필요하면 실제 좌표로 조정해도 됩니다.
-    */
-    const DEFAULT_LOCATION = {
-      lat: 36.793,
-      lng: 127.104
-    };
-
-    /*
-      점수 버튼 자동 생성
-    */
     const scoreItems = document.querySelectorAll(".score-options");
 
     scoreItems.forEach(box => {
@@ -428,9 +422,7 @@
 
     function updateTotalScore() {
       const fields = [
-        "watermelon",
         "sweetness",
-        "coolness",
         "texture",
         "value",
         "revisit"
@@ -449,127 +441,70 @@
       document.getElementById("totalScore").textContent = total;
     }
 
-    /*
-      Google Maps 초기화
-    */
-    function initMap() {
-      geocoder = new google.maps.Geocoder();
+    function useCurrentLocation() {
+      if (!navigator.geolocation) {
+        alert("이 브라우저에서는 현재 위치 기능을 사용할 수 없습니다.");
+        return;
+      }
 
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: DEFAULT_LOCATION,
-        zoom: 15,
-        streetViewControl: true,
-        mapTypeControl: false
-      });
+      document.getElementById("locationStatus").textContent = "현재 위치를 확인하는 중입니다...";
 
-      marker = new google.maps.Marker({
-        position: DEFAULT_LOCATION,
-        map: map,
-        draggable: true
-      });
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
 
-      panorama = new google.maps.StreetViewPanorama(
-        document.getElementById("streetView"),
+          const latText = lat.toFixed(7);
+          const lngText = lng.toFixed(7);
+
+          document.getElementById("lat").value = latText;
+          document.getElementById("lng").value = lngText;
+          document.getElementById("latView").value = latText;
+          document.getElementById("lngView").value = lngText;
+
+          const cafeName = document.getElementById("cafe").value.trim() || "카페 위치";
+          const kakaoUrl = `https://map.kakao.com/link/map/${encodeURIComponent(cafeName)},${lat},${lng}`;
+
+          document.getElementById("mapUrl").value = kakaoUrl;
+
+          const link = document.getElementById("kakaoMapLink");
+          link.href = kakaoUrl;
+          link.style.display = "block";
+          link.textContent = "카카오맵에서 위치 확인";
+
+          document.getElementById("locationStatus").textContent =
+            `현재 위치가 입력되었습니다. 예상 오차는 약 ${Math.round(accuracy)}m입니다.`;
+
+          alert(`현재 위치가 입력되었습니다. 예상 오차: 약 ${Math.round(accuracy)}m`);
+        },
+        function(error) {
+          let message = "현재 위치를 가져오지 못했습니다.";
+
+          if (error.code === error.PERMISSION_DENIED) {
+            message = "위치 권한이 거부되었습니다. 휴대폰 또는 브라우저 설정에서 위치 권한을 허용해 주세요.";
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            message = "현재 위치 정보를 사용할 수 없습니다. 실외 또는 창가에서 다시 시도해 주세요.";
+          } else if (error.code === error.TIMEOUT) {
+            message = "위치 확인 시간이 초과되었습니다. 다시 시도해 주세요.";
+          }
+
+          document.getElementById("locationStatus").textContent = message;
+          alert(message);
+        },
         {
-          position: DEFAULT_LOCATION,
-          pov: {
-            heading: 34,
-            pitch: 10
-          },
-          zoom: 1
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
-
-      map.setStreetView(panorama);
-
-      updateLocationFields(DEFAULT_LOCATION);
-
-      const input = document.getElementById("placeSearch");
-
-      autocomplete = new google.maps.places.Autocomplete(input, {
-        fields: ["name", "formatted_address", "geometry"],
-        componentRestrictions: { country: "kr" }
-      });
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-
-        if (!place.geometry || !place.geometry.location) {
-          alert("장소 정보를 찾지 못했습니다. 주소나 카페명을 조금 더 구체적으로 입력해 주세요.");
-          return;
-        }
-
-        const location = {
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng()
-        };
-
-        map.setCenter(location);
-        map.setZoom(17);
-        marker.setPosition(location);
-        panorama.setPosition(location);
-
-        document.getElementById("address").value = place.formatted_address || input.value;
-        document.getElementById("lat").value = location.lat;
-        document.getElementById("lng").value = location.lng;
-
-        const cafeInput = document.getElementById("cafe");
-
-        if (!cafeInput.value && place.name) {
-          cafeInput.value = place.name;
-        }
-      });
-
-      map.addListener("click", event => {
-        const location = {
-          lat: event.latLng.lat(),
-          lng: event.latLng.lng()
-        };
-
-        marker.setPosition(location);
-        panorama.setPosition(location);
-        updateLocationFields(location);
-      });
-
-      marker.addListener("dragend", event => {
-        const location = {
-          lat: event.latLng.lat(),
-          lng: event.latLng.lng()
-        };
-
-        panorama.setPosition(location);
-        updateLocationFields(location);
-      });
     }
 
-    /*
-      지도 좌표를 주소, 위도, 경도 입력란에 반영
-    */
-    function updateLocationFields(location) {
-      document.getElementById("lat").value = location.lat;
-      document.getElementById("lng").value = location.lng;
-
-      if (!geocoder) return;
-
-      geocoder.geocode({ location: location }, (results, status) => {
-        if (status === "OK" && results[0]) {
-          document.getElementById("address").value = results[0].formatted_address;
-        } else {
-          document.getElementById("address").value = "";
-        }
-      });
-    }
-
-    /*
-      평가 제출
-    */
     document.getElementById("reviewForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
       const fields = [
-        "watermelon",
         "sweetness",
-        "coolness",
         "texture",
         "value",
         "revisit"
@@ -580,9 +515,9 @@
         cafe: document.getElementById("cafe").value.trim(),
         menu: document.getElementById("menu").value.trim(),
         price: document.getElementById("price").value,
-        address: document.getElementById("address").value.trim(),
         lat: document.getElementById("lat").value,
         lng: document.getElementById("lng").value,
+        mapUrl: document.getElementById("mapUrl").value,
         comment: document.getElementById("comment").value.trim()
       };
 
@@ -592,7 +527,7 @@
       }
 
       if (!data.lat || !data.lng) {
-        alert("카페 위치를 지도에서 선택해 주세요.");
+        alert("현재 위치 찍기 버튼을 눌러 카페 위치를 입력해 주세요.");
         return;
       }
 
@@ -616,14 +551,14 @@
           document.getElementById("menu").value = "수박주스";
           document.getElementById("totalScore").textContent = "0";
 
-          /*
-            제출 후 위치는 기본 위치로 되돌림
-          */
-          marker.setPosition(DEFAULT_LOCATION);
-          map.setCenter(DEFAULT_LOCATION);
-          map.setZoom(15);
-          panorama.setPosition(DEFAULT_LOCATION);
-          updateLocationFields(DEFAULT_LOCATION);
+          document.getElementById("lat").value = "";
+          document.getElementById("lng").value = "";
+          document.getElementById("latView").value = "";
+          document.getElementById("lngView").value = "";
+          document.getElementById("mapUrl").value = "";
+          document.getElementById("kakaoMapLink").style.display = "none";
+          document.getElementById("locationStatus").textContent =
+            "아직 위치가 입력되지 않았습니다. 카페 안이나 카페 앞에서 아래 버튼을 눌러 주세요.";
 
           loadResults();
         } else {
@@ -637,9 +572,6 @@
       }
     });
 
-    /*
-      평가 결과 불러오기
-    */
     async function loadResults() {
       try {
         const response = await fetch(SCRIPT_URL);
@@ -692,7 +624,7 @@
             <tr>
               <td>${index + 1}</td>
               <td>${item.cafe}</td>
-              <td><strong>${item.average.toFixed(1)} / 30</strong></td>
+              <td><strong>${item.average.toFixed(1)} / 20</strong></td>
               <td>${item.count}명</td>
               <td><span class="badge">${getType(item.average)}</span></td>
             </tr>
@@ -710,23 +642,12 @@
     }
 
     function getType(score) {
-      if (score >= 27) return "강력 추천";
-      if (score >= 24) return "추천";
-      if (score >= 21) return "무난함";
-      if (score >= 18) return "취향 탐";
+      if (score >= 18) return "강력 추천";
+      if (score >= 16) return "추천";
+      if (score >= 14) return "무난함";
+      if (score >= 12) return "취향 탐";
       return "개인 취향 차이 있음";
     }
   </script>
-
-  <!--
-    2. 여기에 Google Maps API Key를 넣으세요.
-    Maps JavaScript API와 Places API가 활성화되어 있어야 합니다.
-  -->
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=여기에_GOOGLE_MAPS_API_KEY_입력&libraries=places&callback=initMap"
-    async
-    defer>
-  </script>
-
 </body>
 </html>
